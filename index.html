@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>smriti</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-workspace">
+    <header class="app-header">
+      <div class="header-top-row">
+       <button class="icon-menu-btn" id="menu-hamburger-btn" onclick="clearAllCompleted()">☰</button>
+        <span class="app-brand-name">SMRITI</span>
+        <div class="header-right-actions">
+          <button class="action-icon-btn">🔍</button>
+          <button class="action-icon-btn">🌙</button>
+        </div>
+      </div>
+
+      <div class="welcome-section">
+        <div class="welcome-left">
+          <h1 class="welcome-text">Good Morning, <span id="user-display-name">User</span>! 👋</h1>
+          <p class="date-text" id="live-date-string">Loading date...</p>
+        </div>
+        <div class="clock-display-ring">
+          <div class="clock-time" id="live-clock-time">00:00</div>
+          <div class="clock-ampm" id="live-clock-ampm">AM</div>
+        </div>
+      </div>
+    </header>
+   
+    <!-- Interactive Permission Card Wrapper -->
+<div id="permission-promo-card" class="hidden" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 18px; margin: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+  <div style="display: flex; align-items: flex-start; gap: 14px;">
+    <div style="font-size: 24px; background: #f3e8ff; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+      🔔
+    </div>
+    <div style="flex: 1;">
+      <h3 style="font-size: 15px; font-weight: 700; color: #1f2937; margin: 0 0 4px 0;">Never Miss a Task</h3>
+      <p style="font-size: 13px; color: #6b7280; margin: 0 0 12px 0; line-height: 1.4;">Allow notifications to receive real-time alerts on your lock screen even when the app is completely closed.</p>
+      
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-grant-notifications" style="background: #7c3aed; color: #ffffff; border: none; font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+          Enable Alerts
+        </button>
+        <button id="btn-skip-notifications" style="background: #f3f4f6; color: #4b5563; border: none; font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+          Not Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <section class="metrics-row">
+      <div class="metric-card active" id="tab-today" onclick="filterReminders('today')">
+        <span class="metric-icon">📅</span>
+        <span class="metric-count" id="count-today">0</span>
+        <span class="metric-label">Today</span>
+      </div>
+      <div class="metric-card" id="tab-upcoming" onclick="filterReminders('upcoming')">
+        <span class="metric-icon">⏳</span>
+        <span class="metric-count" id="count-upcoming">0</span>
+        <span class="metric-label">Upcoming</span>
+      </div>
+      <div class="metric-card" id="tab-completed" onclick="filterReminders('completed')">
+        <span class="metric-icon">✅</span>
+        <span class="metric-count" id="count-completed">0</span>
+        <span class="metric-label">Completed</span>
+      </div>
+      <div class="metric-card" id="tab-all" onclick="filterReminders('all')">
+        <span class="metric-icon">📋</span>
+        <span class="metric-count" id="count-all">0</span>
+        <span class="metric-label">All</span>
+      </div>
+    </section>
+
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search Tasks..." oninput="handleSearch()">
+      </div>
+      <button class="filter-settings-btn">🎛️</button>
+    </div>
+
+    <main class="content-list-zone">
+      <div class="list-section-header">
+        <h2 class="block-title" id="section-title">Today's Tasks</h2>
+        <span class="view-all-link" onclick="filterReminders('all')">View all</span>
+      </div>
+      <div class="reminders-stack" id="reminders-container"></div>
+    </main>
+
+    <button class="floating-add-trigger" onclick="openAddModal()">＋</button>
+
+    <nav class="bottom-nav-dock">
+      <button class="nav-dock-item active" onclick="filterReminders('all')">
+        <span class="dock-icon">🏠</span>
+        <span class="dock-label">Home</span>
+      </button>
+      <button class="nav-dock-item" onclick="filterReminders('upcoming')">
+        <span class="dock-icon">📅</span>
+        <span class="dock-label">Calendar</span>
+      </button>
+      <button class="nav-dock-item" onclick="filterReminders('today')">
+        <span class="dock-icon">📊</span>
+        <span class="dock-label">Categories</span>
+      </button>
+      <button class="nav-dock-item">
+        <span class="dock-icon">⚙️</span>
+        <span class="dock-label">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="add-modal" class="modal-overlay hidden" onclick="closeAddModalViaOverlay(event)">
+    <div class="dark-modal-box">
+      <div class="modal-header">
+        <button type="button" class="close-icon-btn" onclick="closeAddModal()">✕</button>
+        <h3>Add Task</h3>
+        <button type="submit" form="reminder-form" class="save-check-btn">✓</button>
+      </div>
+      
+      <form id="reminder-form" onsubmit="createNewReminder(event)">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="form-title" placeholder="Enter task title" required>
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <textarea id="form-notes" placeholder="Enter note (optional)"></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="form-date" required>
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <input type="time" id="form-time" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <div class="category-grid-selector">
+            <div class="cat-select-card active" data-value="Work">💼<br><span>Work</span></div>
+            <div class="cat-select-card" data-value="Study">📚<br><span>Study</span></div>
+            <div class="cat-select-card" data-value="Personal">🎁<br><span>Personal</span></div>
+            <div class="cat-select-card" data-value="Health">❤️<br><span>Health</span></div>
+          </div>
+          <input type="hidden" id="form-category" value="Work">
+        </div>
+
+        <div class="form-group">
+          <label>Priority</label>
+          <div class="priority-row-selector">
+            <div class="pri-select-btn low" data-value="Low">↓ Low</div>
+            <div class="pri-select-btn medium active" data-value="Medium">— Medium</div>
+            <div class="pri-select-btn high" data-value="High">↑ High</div>
+          </div>
+          <input type="hidden" id="form-priority" value="Medium">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="alert-modal" class="modal-overlay hidden">
+    <div class="premium-alert-card">
+      <div class="floating-bell-wrapper">
+        <span class="bell-emoji">🔔</span>
+        <span class="bell-badge-count">1</span>
+      </div>
+      <h2 id="alert-title">Task Title</h2>
+      <span class="alert-category-pill" id="alert-category">Category</span>
+      
+      <p class="alert-body-desc" id="alert-notes">Contextual description notes text goes here.</p>
+      
+      <div class="alert-time-chip-box">
+        <span>🕒 <span id="alert-time-string">00:00</span></span>
+        <span>📅 <span id="alert-date-string">01 Jan</span></span>
+      </div>
+
+      <div class="alert-buttons-group">
+        <button class="btn-dismiss-purple" onclick="dismissAlert()">Dismiss</button>
+        <!--<button class="btn-snooze-outline" onclick="snoozeAlert()">⏰ Snooze 10 min</button>-->
+      </div>
+    </div>
+  </div>
+ <!-- ANIMATED CUSTOM ONBOARDING POPUP -->
+  <div id="onboarding-modal" class="modal-overlay hidden">
+    <div class="premium-onboarding-card"> 
+      <div class="avatar-wave-wrapper">
+        <span class="wave-emoji">👋</span> 
+      </div>
+      <h2>Welcome to Smriti</h2>
+      <p class="onboarding-desc">Please enter your name to customize your personal dashboard layers.</p>
+      
+      <div class="onboarding-form-group">
+        <input type="text" id="onboarding-name-input" placeholder="Your Name" autocomplete="off">
+      </div>
+
+      <button class="btn-get-started" onclick="submitUserIdentity()">Get Started →</button>
+    </div>
+  </div>
+  <div id="delete-modal" class="modal-overlay hidden">
+      <div class="premium-delete-card">
+        <div class="trash-icon-animation">🗑️</div>
+        <h3>Delete Task?</h3>
+        <p class="delete-desc">This action cannot be undone. It will permanently remove this item from your dashboard layers.</p>
+        
+        <div class="delete-actions-row">
+          <button class="btn-cancel-delete" onclick="closeDeleteModal()">Cancel</button>
+          <button class="btn-confirm-delete" id="btn-final-delete">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+  <script src="app.js"></script>
+</body>
+</html>
