@@ -7,6 +7,10 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "35130f5f-9e65-403c-8b34-1da87213441b",
+      serviceWorkerPath: "smriti/OneSignalSDKWorker.js",
+      serviceWorkerParam: {
+        scope: "/smriti/"
+      }
     });
   });
 </script>
