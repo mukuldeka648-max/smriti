@@ -1,3 +1,4 @@
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 const CACHE_NAME = 'reminder-cache-v3'; 
 const ASSETS = [
   './',
