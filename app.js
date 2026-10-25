@@ -121,6 +121,16 @@ function submitUserIdentity() {
   
   localStorage.setItem('reminder_user_name', enteredName);
   
+
+    let uid = localStorage.getItem("smriti_uid");
+  if (!uid) {
+    uid = "user-" + crypto.randomUUID();
+    localStorage.setItem("smriti_uid", uid);
+  }
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(function(OneSignal) {
+    OneSignal.login(uid);
+  });
   const nameEl = document.getElementById('user-display-name');
   if (nameEl) nameEl.textContent = enteredName;
   
@@ -308,6 +318,28 @@ function createNewReminder(e) {
   };
 
   reminders.push(newItem);
+   const sendAfter = new Date(`${newItem.date}T${newItem.time}`).toISOString();
+  let uid = localStorage.getItem("smriti_uid");
+  if (!uid) {
+    uid = "user-" + crypto.randomUUID();
+    localStorage.setItem("smriti_uid", uid);
+  }
+  fetch("https://smriti-reminder-api.mukuldeka648.workers.dev/schedule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: uid,
+      title: newItem.title,
+      category: newItem.category,
+      sendAfter: sendAfter
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    newItem.onesignalId = data.id;
+    saveToDeviceStorage();
+  })
+  .catch(err => console.log("Schedule failed:", err));
   saveToDeviceStorage();
   closeAddModal();
   renderReminders();
@@ -442,6 +474,14 @@ function deleteReminder(id) {
 
 function executeFinalDelete() {
   if (reminderIdToDelete !== null) {
+     const task = reminders.find(r => r.id === reminderIdToDelete);
+    if (task && task.onesignalId) {
+      fetch("https://smriti-reminder-api.mukuldeka648.workers.dev/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: task.onesignalId })
+      }).catch(err => console.log("Cancel failed:", err));
+    }
     reminders = reminders.filter(r => r.id !== reminderIdToDelete);
     saveToDeviceStorage();
     renderReminders();
